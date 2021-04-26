@@ -1,6 +1,7 @@
 from flask import Blueprint, request, render_template, redirect, url_for, flash
 from datetime import date, datetime
 from grocery_app.models import GroceryStore, GroceryItem
+from grocery_app.forms import GroceryStoreForm, GroceryItemForm
 # from grocery_app.forms import BookForm, AuthorForm, GenreForm
 
 # Import app and db from events_app package so that we can run app
@@ -21,14 +22,29 @@ def homepage():
 @main.route('/new_store', methods=['GET', 'POST'])
 def new_store():
     # TODO: Create a GroceryStoreForm
+    form = GroceryStoreForm()
 
+    if form.validate_on_submit():
+        new_grocery_store_object = GroceryStore (
+            title=form.title.data,
+            address=form.address.data,
+            created_by=current_user
+        )
+
+        db.session.add(new_grocery_store_object)
+        db.session.commit()
     # TODO: If form was submitted and was valid:
     # - create a new GroceryStore object and save it to the database,
+
     # - flash a success message, and
+
+        flash("Success! You have created a grocery store")
     # - redirect the user to the store detail page.
+        return redirect(url_for('main.store_detail', store_id=new_grocery_store_object.id))
 
     # TODO: Send the form to the template and use it to render the form fields
-    return render_template('new_store.html')
+
+    return render_template('new_store.html', form=form)
 
 @main.route('/new_item', methods=['GET', 'POST'])
 def new_item():
