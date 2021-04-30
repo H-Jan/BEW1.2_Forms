@@ -13,11 +13,11 @@ class GroceryStoreForm(FlaskForm):
 
 class GroceryItemForm(FlaskForm):
     """Form for adding/updating a GroceryItem."""
-    name = StringField('Item', validators=[DataRequired(), Length(min=1, max=99)])
+    name = StringField('Item', validators=[DataRequired()])
     price = FloatField('Price', validators=[DataRequired()])
     category = SelectField('Category', choices=ItemCategory.choices())
     photo_url = StringField('Photo URL', validators=[URL()])
-    store = QuerySelectField('Store', query_factory=lambda: GroceryStore.query, allow_blank=False)
+    store = QuerySelectField('Store', query_factory=lambda: GroceryStore.query)
     submit = SubmitField('Submit')
 
 class SignUpForm(FlaskForm):

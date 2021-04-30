@@ -25,6 +25,7 @@ def homepage():
 @main.route('/new_store', methods=['GET', 'POST'])
 @login_required
 def new_store():
+
     form = GroceryStoreForm()
 
     if form.validate_on_submit():
@@ -50,7 +51,7 @@ def new_item():
 
     form = GroceryItemForm()
 
-    if form.validate_on_submit():
+    if form.validate_on_submit():       
         new_item = GroceryItem(
             name = form.name.data,
             price = form.price.data,
@@ -63,7 +64,8 @@ def new_item():
 
         db.session.add(new_item)
         db.session.commit()
- 
+
+
         flash('Success! New ITEM was created!')
 
         return redirect(url_for('main.item_detail', item_id=new_item.id))
