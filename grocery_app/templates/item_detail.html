@@ -11,12 +11,13 @@
 
 <p><strong>Store:</strong> {{ item.store.title }}</p>
 
-<p><strong> User: </strong> {{ item.created_by.username}} </p>
+<p><strong> User: </strong> {{ item.created_by }} </p>
 
 
 <h2>Edit Item</h2>
 
-<form method="POST">
+<form method="POST" action="{{ url_for('main.item_detail', item_id=item.id) }}">
+    {{ form.csrf_token}}
     <fieldset>
         <legend>Please enter your information:</legend>
 

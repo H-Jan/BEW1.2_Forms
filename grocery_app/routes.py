@@ -4,14 +4,13 @@ from flask_login import login_user, logout_user, login_required, current_user
 from grocery_app.models import GroceryStore, GroceryItem, User
 from grocery_app.forms import GroceryStoreForm, GroceryItemForm, SignUpForm, LoginForm
 from grocery_app import bcrypt
-# from grocery_app.forms import BookForm, AuthorForm, GenreForm
+
 
 # Import app and db from events_app package so that we can run app
 from grocery_app import app, db
 
 main = Blueprint("main", __name__)
 
-auth = Blueprint("auth", __name__)
 
 ##########################################
 #           Routes                       #
@@ -29,18 +28,18 @@ def new_store():
     form = GroceryStoreForm()
 
     if form.validate_on_submit():
-        new_grocery_store_object = GroceryStore (
+        new_store = GroceryStore (
             title=form.title.data,
             address=form.address.data,
-            created_by=flask_login.current_user
+            created_by=current_user
         )
 
-        db.session.add(new_grocery_store_object)
+        db.session.add(new_store)
         db.session.commit()
 
         flash("Success! You have created a grocery store")
-
-        return redirect(url_for('main.store_detail', store_id=new_grocery_store_object.id))
+#
+        return redirect(url_for('main.store_detail', store_id=new_store.id))
 
 
     return render_template('new_store.html', form=form)
@@ -49,22 +48,25 @@ def new_store():
 @login_required
 def new_item():
 
-    form = GroceryItemForm
+    form = GroceryItemForm()
 
     if form.validate_on_submit():
-        new_grocery_item_object = GroceryItem(
-            title = form.title.data,
-            address = form.address.data,
-            created_by = flask_login.current_user
+        new_item = GroceryItem(
+            name = form.name.data,
+            price = form.price.data,
+            category = form.category.data,
+            photo_url = form.photo_url.data,
+            store = form.store.data,
+            created_by = current_user
 
         )
 
-        db.session.add(new_grocery_item_object)
+        db.session.add(new_item)
         db.session.commit()
  
-        flash('Success! New Grocery Store Item was Created!')
+        flash('Success! New ITEM was created!')
 
-        return redirect(url_for('main.store_detail', item_id=new_grocery_item_object.id))
+        return redirect(url_for('main.item_detail', item_id=new_item.id))
 
     return render_template('new_item.html', form=form)
 
@@ -84,7 +86,7 @@ def store_detail(store_id):
 
         flash("You have successfully updated your Grocery Store")
 
-        return redirect(url_for('main.store_details'))
+        return redirect(url_for('main.store_detail', store_id = store.id, store=store))
 
     store = GroceryStore.query.get(store_id)
     return render_template('store_detail.html', store=store, form=form)
@@ -94,7 +96,7 @@ def store_detail(store_id):
 def item_detail(item_id):
     item = GroceryItem.query.get(item_id)
 
-    form = GroceryItemForm(object=item)
+    form = GroceryItemForm(obj=item)
 
     if form.validate_on_submit():
 
@@ -104,36 +106,35 @@ def item_detail(item_id):
         item.photo_url = form.photo_url.data
         item.store = form.store.data
 
-        db.session.add(store)
+        db.session.add(item)
         db.session.commit()
 
         flash("Congratulations! Your grocery store item has been updated!")
 
-        return redirect(url_for('main.item_detail'))
+        return redirect(url_for('main.item_detail', item_id = item.id))
 
     item = GroceryItem.query.get(item_id)
     return render_template('item_detail.html', item=item, form=form)
 
 @main.route('/add_to_shopping_list/<item_id>', methods=['POST'])
 def add_to_shopping_list(item_id):
-    item = GroceryItem.query.filter_by(id=item_id).one()
-    user = User.query.filter_by(username=current_user.username).one()
-    user.shopping_list_items.append(GroceryItem.query.filter_by(id=item_id).one())
-    db.session.add(item)
+    item = GroceryItem.query.get(item_id)
+    current_user.shopping_list_items.append(item)
+    db.session.add(current_user)
     db.session.commit()
 
-    return redirect(url_for('main.shopping_list'))
+    return redirect(url_for('main.shopping_list', item_id = item_id))
 
 @main.route('/shopping_list')
 @login_required
 def shopping_list():
-    item = GroceryItem.query.join(GroceryItem.user_items).filter_by(id=current_user.id).all()
+    item = current_user.shopping_list_items
 
-    return render_template('shopping_list.html', items=item)
-
-
+    return render_template('shopping_list.html', item=item)
 
 
+#Authorization Stuff
+auth = Blueprint("auth", __name__)
 
 @auth.route('/signup', methods=['GET', 'POST'])
 def signup():
